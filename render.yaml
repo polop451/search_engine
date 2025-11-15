@@ -18,22 +18,10 @@ services:
     # Environment Variables
     envVars:
       - key: DATABASE_URL
-        sync: false  # Set manually in Render dashboard
+        sync: false  # Set manually in Render dashboard (Required)
       
-      - key: PYTHON_API_KEY
-        sync: false  # Set manually in Render dashboard
-      
-      - key: SUPABASE_URL
-        sync: false  # Set manually in Render dashboard
-      
-      - key: SUPABASE_ANON_KEY
-        sync: false  # Set manually in Render dashboard
-      
-      - key: ENVIRONMENT
-        value: production
-      
-      - key: LOG_LEVEL
-        value: INFO
+      - key: API_KEY
+        sync: false  # Set manually in Render dashboard (Required)
       
       - key: PYTHONUNBUFFERED
         value: "1"
