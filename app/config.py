@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     api_key: str  # Shared secret with Hono.js backend
     
     # Model Configuration
-    model_name: str = "sentence-transformers/paraphrase-MiniLM-L3-v2"  # ~50MB (เดิม ~150MB)
+    model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_dimension: int = 384  # all-MiniLM-L6-v2 dimension
     
     # Search Configuration
@@ -31,6 +31,5 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
-        protected_namespaces = ('settings_',)
 
 settings = Settings()
