@@ -21,7 +21,7 @@ RUN python -c "import nltk; nltk.download('wordnet', download_dir='/root/nltk_da
 # ========================================
 # Final stage - much smaller!
 # ========================================
-FROM python:3.11-slim-bookworm
+FROM python:3.11-slim-bookworm as builder
 
 WORKDIR /app
 
