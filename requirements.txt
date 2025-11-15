@@ -1,29 +1,59 @@
-# FastAPI Framework
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
-python-multipart==0.0.9  # For enhanced form data parsing (NLP feature)
-
-# Pydantic (Data Validation)
-pydantic==2.9.2
+# ===================================
+# Web Framework & ASGI Server
+# ===================================
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
 pydantic-settings==2.6.1
+python-multipart==0.0.18
 
-# Database
+# ===================================
+# Database & ORM
+# ===================================
 psycopg2-binary==2.9.10
+asyncpg==0.30.0
+sqlalchemy==2.0.36
 pgvector==0.3.6
 
-# ML/AI - Sentence Transformers
+# ===================================
+# Vector Search & NLP
+# ===================================
 sentence-transformers==3.3.1
-torch==2.5.1  # ✅ Latest stable for Apple Silicon (macOS ARM64)
-torchvision==0.20.1  # ✅ Compatible with torch 2.5.1
+torch==2.7.0
 transformers==4.46.3
+nltk==3.9.1
 numpy==1.26.4
+scikit-learn==1.5.2
 
-# Utilities
+# ===================================
+# HTTP Client & Utilities
+# ===================================
+httpx==0.28.0
+tenacity==9.0.0
 python-dotenv==1.0.1
 redis==5.2.0
-httpx==0.27.2
-nltk==3.9.1  # Natural Language Toolkit for intelligent synonym expansion
 
-# Development (Optional)
-pytest==8.3.3
+# ===================================
+# Security & Authentication
+# ===================================
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ===================================
+# Logging & Monitoring
+# ===================================
+python-json-logger==3.2.1
+
+# ===================================
+# Data Validation
+# ===================================
+email-validator==2.2.0
+
+# ===================================
+# Development & Testing (Optional)
+# ===================================
+pytest==8.3.4
 pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+black==24.10.0
+ruff==0.8.3
