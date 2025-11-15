@@ -1,18 +1,13 @@
-# Optimized Multi-stage Dockerfile for Railway / Coolify
-# Reduced from ~6.5GB to ~1.5GB + HTTPS mirror fix
-
 # ============================
 # Builder stage
 # ============================
 FROM python:3.11-slim-bookworm AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-
 WORKDIR /app
 
-# Force Debian mirrors to HTTPS to avoid ISP/proxy hijack
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.debian.org|https://security.debian.org|g' /etc/apt/sources.list
+# Replace Debian sources with HTTPS mirror
+RUN printf "Types: deb\nURIs: https://deb.debian.org/debian\nSuites: bookworm bookworm-updates bookworm-backports\nComponents: main contrib non-free non-free-firmware\n\nTypes: deb\nURIs: https://security.debian.org/debian-security\nSuites: bookworm-security\nComponents: main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/debian.sources
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,51 +15,46 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Copy requirements & install
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Download NLTK data in builder layer
+# Download NLTK data
 RUN python -c "import nltk; nltk.download('wordnet', download_dir='/root/nltk_data'); nltk.download('omw-1.4', download_dir='/root/nltk_data')"
 
 
 # ============================
-# runtime stage
+# Runtime stage
 # ============================
 FROM python:3.11-slim-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
-
 WORKDIR /app
 
-# Force Debian mirrors to HTTPS (same as builder)
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.debian.org|https://security.debian.org|g' /etc/apt/sources.list
+# Replace Debian sources with HTTPS mirror
+RUN printf "Types: deb\nURIs: https://deb.debian.org/debian\nSuites: bookworm bookworm-updates bookworm-backports\nComponents: main contrib non-free non-free-firmware\n\nTypes: deb\nURIs: https://security.debian.org/debian-security\nSuites: bookworm-security\nComponents: main contrib non-free non-free-firmware\n" > /etc/apt/sources.list.d/debian.sources
 
-# Install only runtime dependencies
+# Install runtime deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages and NLTK data from builder
+# Copy Python packages from builder
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /root/nltk_data /usr/local/share/nltk_data
 
-# Copy application code
+# Copy your app
 COPY . .
 
-# Environment variables
+# Env vars
 ENV PYTHONPATH=/app \
     PYTHONUNBUFFERED=1 \
     NLTK_DATA=/usr/local/share/nltk_data \
     PATH=/root/.local/bin:$PATH
 
-# Expose port
 EXPOSE 8000
 
-# Health check (still respects PORT env)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run the application (keep shell form for ${PORT:-8000} expansion)
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
