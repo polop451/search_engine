@@ -1,0 +1,4 @@
+curl -X POST "http://localhost:8000/search/vector" \
+  -H "X-API-Key: vsk_aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5zA7bC9dE1fG3hI5jK7lM9" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "egg fire rice", "limit": 5}'

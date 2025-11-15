@@ -1,0 +1,49 @@
+# Render.com Configuration for Python Vector API
+# Reference: https://render.com/docs/blueprint-spec
+
+services:
+  # Python Vector API Service
+  - type: web
+    name: fitrecipes-vector-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: free  # Free tier: 512MB RAM, 0.1 CPU, sleeps after 15 min inactivity
+    branch: main
+    healthCheckPath: /health
+    
+    # Auto-deploy from GitHub
+    autoDeploy: true
+    
+    # Environment Variables
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render dashboard
+      
+      - key: PYTHON_API_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      - key: SUPABASE_URL
+        sync: false  # Set manually in Render dashboard
+      
+      - key: SUPABASE_ANON_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      - key: ENVIRONMENT
+        value: production
+      
+      - key: LOG_LEVEL
+        value: INFO
+      
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      
+      - key: PORT
+        value: "8000"
+
+# Database (Optional - use existing Supabase)
+# databases:
+#   - name: fitrecipes-db
+#     plan: free
+#     databaseName: fitrecipes
+#     user: fitrecipes_user

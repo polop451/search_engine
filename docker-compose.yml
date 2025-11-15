@@ -1,0 +1,54 @@
+# Docker Compose for Local Development
+# Run both Backend (Hono.js) and Python API together
+
+version: '3.8'
+
+services:
+  # Python Vector API
+  python-api:
+    build:
+      context: ./python-vector-api
+      dockerfile: Dockerfile
+    container_name: fitrecipes-python-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PYTHON_API_KEY=${PYTHON_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fitrecipes-network
+    restart: unless-stopped
+
+  # Backend API (Hono.js) - Optional, if you want to run together
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: fitrecipes-backend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #     - PYTHON_API_URL=http://python-api:8000
+  #     - PYTHON_API_KEY=${PYTHON_API_KEY}
+  #   depends_on:
+  #     - python-api
+  #   networks:
+  #     - fitrecipes-network
+  #   restart: unless-stopped
+
+networks:
+  fitrecipes-network:
+    driver: bridge
