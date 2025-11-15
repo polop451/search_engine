@@ -1,7 +1,7 @@
 # Optimized Multi-stage Dockerfile for Railway
 # Reduced from 6.5GB to ~1.5GB
 
-FROM python:3.11-slim as builder
+FROM python:3.11-slim-bookworm as builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN python -c "import nltk; nltk.download('wordnet', download_dir='/root/nltk_da
 # ========================================
 # Final stage - much smaller!
 # ========================================
-FROM python:3.11-slim-bookworm as builder
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
