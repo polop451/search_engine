@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     cache_ttl: int = 3600  # 1 hour
     
     # Backend URL for webhooks (optional)
-    backend_url: str = "http://localhost:3000"
+    backend_url: str = "https://fitrecipes.vercel.app"
     
     class Config:
         env_file = ".env"
