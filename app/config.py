@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     embedding_dimension: int = 384  # all-MiniLM-L6-v2 dimension
     
     # Search Configuration
-    similarity_threshold: float = 0.3
+    similarity_threshold: float = 0.4
     max_results: int = 50
     
     # Redis Cache (optional)
