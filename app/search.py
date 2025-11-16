@@ -48,8 +48,11 @@ class VectorSearchService:
                 r."imageUrls",
                 r.status,
                 r."authorId",
+                u."firstName" as "authorFirstName",
+                u."lastName" as "authorLastName",
                 1 - (r.embedding <=> %s::vector) as similarity
             FROM recipes r
+            LEFT JOIN users u ON r."authorId" = u.id
             WHERE 
                 r.status = 'APPROVED'
                 AND r.embedding IS NOT NULL
@@ -247,6 +250,8 @@ class VectorSearchService:
                     r."imageUrls",
                     r.status,
                     r."authorId",
+                    u."firstName" as "authorFirstName",
+                    u."lastName" as "authorLastName",
                     -- Calculate match score
                     (
                         -- Primary: mainIngredient exact match (weight: 10)
@@ -295,6 +300,7 @@ class VectorSearchService:
                     ) as matched_count
                     
                 FROM recipes r
+                LEFT JOIN users u ON r."authorId" = u.id
                 WHERE 
                     r.status = 'APPROVED'
             ) AS recipe_matches
@@ -418,6 +424,8 @@ class VectorSearchService:
         sql = """
             SELECT 
                 r.*,
+                u."firstName" as "authorFirstName",
+                u."lastName" as "authorLastName",
                 ts_rank(
                     to_tsvector('english', 
                         COALESCE(r.title, '') || ' ' || 
@@ -427,6 +435,7 @@ class VectorSearchService:
                     to_tsquery('english', %s)
                 ) as rank
             FROM recipes r
+            LEFT JOIN users u ON r."authorId" = u.id
             WHERE 
                 r.status = 'APPROVED'
                 AND to_tsvector('english', 
