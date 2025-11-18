@@ -479,6 +479,125 @@ class VectorSearchService:
                 results = cur.fetchall()
         
         return [dict(row) for row in results]
+    
+    def get_search_suggestions(
+        self,
+        query: str,
+        limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        🔍 SEARCH SUGGESTIONS: Fast autocomplete suggestions
+        
+        Provides quick search suggestions based on:
+        - Recipe titles (highest priority)
+        - Main ingredients
+        - Cuisine types
+        - Popular recipes (by rating)
+        
+        Optimized for speed using ILIKE for prefix matching
+        
+        Args:
+            query: Partial search query (e.g., "chic", "thai", "spa")
+            limit: Maximum number of suggestions (1-20)
+        
+        Returns:
+            List of suggestions with recipe info and match type
+        """
+        if not query or len(query.strip()) < 1:
+            return []
+        
+        query_lower = query.strip().lower()
+        search_pattern = f"%{query_lower}%"
+        
+        # Fast suggestion query with priority scoring
+        sql = """
+            WITH ranked_suggestions AS (
+                SELECT DISTINCT
+                    r.id,
+                    r.title,
+                    r."mainIngredient",
+                    r."cuisineType",
+                    r."mealType",
+                    r."imageUrls",
+                    r."averageRating",
+                    r."totalRatings",
+                    -- Priority scoring for relevance
+                    (
+                        CASE 
+                            -- Exact title match (highest priority)
+                            WHEN LOWER(r.title) = %s THEN 1000
+                            -- Title starts with query
+                            WHEN LOWER(r.title) LIKE %s THEN 900
+                            -- Title contains query
+                            WHEN LOWER(r.title) LIKE %s THEN 800
+                            -- Main ingredient exact match
+                            WHEN LOWER(r."mainIngredient") = %s THEN 700
+                            -- Main ingredient starts with query
+                            WHEN LOWER(r."mainIngredient") LIKE %s THEN 600
+                            -- Main ingredient contains query
+                            WHEN LOWER(r."mainIngredient") LIKE %s THEN 500
+                            -- Cuisine type match
+                            WHEN LOWER(r."cuisineType") LIKE %s THEN 400
+                            -- Description contains query
+                            WHEN LOWER(r.description) LIKE %s THEN 300
+                            ELSE 0
+                        END
+                    ) + 
+                    -- Boost by rating (max +100)
+                    (COALESCE(r."averageRating", 0) * 20) +
+                    -- Boost by popularity (max +50)
+                    (LEAST(COALESCE(r."totalRatings", 0), 50)) AS relevance_score,
+                    -- Match type for frontend display
+                    CASE 
+                        WHEN LOWER(r.title) LIKE %s THEN 'title'
+                        WHEN LOWER(r."mainIngredient") LIKE %s THEN 'ingredient'
+                        WHEN LOWER(r."cuisineType") LIKE %s THEN 'cuisine'
+                        ELSE 'description'
+                    END as match_type
+                FROM recipes r
+                WHERE 
+                    r.status = 'APPROVED'
+                    AND (
+                        LOWER(r.title) LIKE %s
+                        OR LOWER(r."mainIngredient") LIKE %s
+                        OR LOWER(r."cuisineType") LIKE %s
+                        OR LOWER(r.description) LIKE %s
+                    )
+            )
+            SELECT *
+            FROM ranked_suggestions
+            WHERE relevance_score > 0
+            ORDER BY relevance_score DESC, "averageRating" DESC NULLS LAST
+            LIMIT %s
+        """
+        
+        # Prepare parameters
+        prefix_pattern = f"{query_lower}%"
+        params = [
+            query_lower,           # exact title match
+            prefix_pattern,        # title starts with
+            search_pattern,        # title contains
+            query_lower,           # exact ingredient match
+            prefix_pattern,        # ingredient starts with
+            search_pattern,        # ingredient contains
+            search_pattern,        # cuisine contains
+            search_pattern,        # description contains
+            search_pattern,        # match_type: title
+            search_pattern,        # match_type: ingredient
+            search_pattern,        # match_type: cuisine
+            search_pattern,        # WHERE: title
+            search_pattern,        # WHERE: ingredient
+            search_pattern,        # WHERE: cuisine
+            search_pattern,        # WHERE: description
+            limit
+        ]
+        
+        with get_db_connection() as conn:
+            with get_db_cursor(conn) as cur:
+                cur.execute(sql, params)
+                results = cur.fetchall()
+        
+        return [dict(row) for row in results]
 
 # Global instance
 search_service = VectorSearchService()

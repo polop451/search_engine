@@ -45,6 +45,19 @@ class EmbeddingResponse(BaseModel):
     embedding_generated: bool
     message: str
 
+class SearchSuggestionRequest(BaseModel):
+    """Request model for search suggestions"""
+    query: str = Field(..., min_length=1, max_length=100, description="Partial search query for suggestions")
+    limit: int = Field(default=10, ge=1, le=20, description="Maximum suggestions")
+
+class SearchSuggestionResponse(BaseModel):
+    """Response model for search suggestions"""
+    status: str = "success"
+    suggestions: List[Dict[str, Any]]
+    total: int
+    query: str
+    execution_time_ms: float
+
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str = "healthy"

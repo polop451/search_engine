@@ -15,7 +15,9 @@ from app.models import (
     IngredientSearchResponse,
     EmbeddingRequest,
     EmbeddingResponse,
-    HealthResponse
+    HealthResponse,
+    SearchSuggestionRequest,
+    SearchSuggestionResponse
 )
 
 # Initialize FastAPI app
@@ -28,7 +30,7 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.backend_url, "https://fitrecipes-staging.vercel.app" , "http://localhost:5173"],
+    allow_origins=[settings.backend_url, "https://fitrecipes-staging.vercel.app", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -254,6 +256,95 @@ async def ingredient_search(
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ingredient search failed: {str(e)}")
+
+@app.post("/search/suggestions", response_model=SearchSuggestionResponse)
+async def search_suggestions(
+    request: SearchSuggestionRequest,
+    api_key: str = Depends(verify_api_key)
+):
+    """
+    🔍 SEARCH SUGGESTIONS: Fast autocomplete for search input
+    
+    **Ultra-fast endpoint** optimized for real-time search suggestions as user types.
+    
+    **Use Cases:**
+    - Search bar autocomplete
+    - "Did you mean..." suggestions
+    - Quick recipe discovery
+    - Popular search terms
+    
+    **Features:**
+    - ⚡ Optimized for speed (< 50ms typical response)
+    - 🎯 Smart ranking by relevance + popularity
+    - 📝 Multiple match types: title, ingredient, cuisine
+    - ⭐ Boosted by ratings and popularity
+    
+    **Example Queries:**
+    - "chic" → "Chicken Curry", "Spicy Chicken Pad Thai"
+    - "thai" → Thai recipes, Thai cuisine dishes
+    - "spa" → "Spaghetti Carbonara", "Spanish Paella"
+    - "veg" → Vegetable dishes, Vegan recipes
+    
+    **Match Types in Response:**
+    - `title`: Query matches recipe title
+    - `ingredient`: Query matches main ingredient
+    - `cuisine`: Query matches cuisine type
+    - `description`: Query matches description
+    
+    **Parameters:**
+    - **query**: Partial search term (1-100 chars)
+    - **limit**: Max suggestions (1-20, default 10)
+    
+    **Response Format:**
+    ```json
+    {
+      "status": "success",
+      "suggestions": [
+        {
+          "id": "recipe_123",
+          "title": "Thai Chicken Curry",
+          "mainIngredient": "Chicken",
+          "cuisineType": "Thai",
+          "mealType": ["DINNER"],
+          "imageUrls": [...],
+          "averageRating": 4.8,
+          "totalRatings": 156,
+          "match_type": "title",
+          "relevance_score": 950
+        }
+      ],
+      "total": 10,
+      "query": "thai",
+      "execution_time_ms": 23.45
+    }
+    ```
+    
+    **Performance Tips:**
+    - Call this endpoint on keyup/input events with debouncing (300ms)
+    - Minimum 2-3 characters recommended for best results
+    - Results are pre-sorted by relevance
+    """
+    start_time = time.time()
+    
+    try:
+        # Get search suggestions
+        suggestions = search_service.get_search_suggestions(
+            query=request.query,
+            limit=request.limit
+        )
+        
+        execution_time = (time.time() - start_time) * 1000
+        
+        return SearchSuggestionResponse(
+            status="success",
+            suggestions=suggestions,
+            total=len(suggestions),
+            query=request.query,
+            execution_time_ms=round(execution_time, 2)
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Suggestion search failed: {str(e)}")
 
 @app.post("/search/hybrid", response_model=SearchResponse)
 async def hybrid_search(
