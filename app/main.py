@@ -527,7 +527,8 @@ async def generate_embedding(
                     raise HTTPException(status_code=404, detail="Recipe not found or not approved")
         
         # Prepare text and generate embedding
-        recipe_dict = dict(recipe)
+        colnames = [d[0] for d in cur.description]
+        recipe_dict = dict(zip(colnames, recipe))
         recipe_text = embedding_service.prepare_recipe_text(recipe_dict)
         embedding = embedding_service.generate_embedding(recipe_text)
         
