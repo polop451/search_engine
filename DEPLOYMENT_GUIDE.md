@@ -1,51 +1,51 @@
 # Python Vector API - Deployment Guide 🚀
 
-## 🌟 แพลตฟอร์มแนะนำ (FREE Tier)
+## 🌟 Recommended Platforms (FREE Tier)
 
-### 1. **Render.com** (แนะนำที่สุด ⭐⭐⭐⭐⭐)
-- **Free Tier**: 750 ชั่วโมง/เดือน (พอเกิน)
-- **RAM**: 512MB (พอดีสำหรับโมเดล ML)
-- **Pros**: Auto-deploy จาก GitHub, SSL ฟรี, ง่ายมาก
-- **Cons**: Cold start ~30-50 วินาที หลังไม่ใช้ 15 นาที
-- **เหมาะสำหรับ**: Production-ready, มี custom domain ฟรี
+### 1. **Render.com** (Top pick ⭐⭐⭐⭐⭐)
+- **Free Tier**: 750 hours/month (plenty)
+- **RAM**: 512MB (enough for this ML workload)
+- **Pros**: Auto-deploy from GitHub, free SSL, very easy to use
+- **Cons**: Cold start ~30-50 seconds after 15 minutes idle
+- **Best for**: Production-ready services with free custom domains
 
-### 2. **Railway.app** (เยี่ยมมาก ⭐⭐⭐⭐)
-- **Free Tier**: $5 credit/เดือน (~500 ชั่วโมง)
+### 2. **Railway.app** (Great choice ⭐⭐⭐⭐)
+- **Free Tier**: $5 credit/month (~500 hours)
 - **RAM**: 512MB-1GB
-- **Pros**: No cold start, deploy ง่าย, logs ดี
-- **Cons**: Credit หมดต้องเติม
-- **เหมาะสำหรับ**: Development + Light production
+- **Pros**: No cold start, easy deploys, great logs
+- **Cons**: Need to top up once the monthly credit ends
+- **Best for**: Development + light production
 
-### 3. **Fly.io** (ดีแต่ซับซ้อนกว่า ⭐⭐⭐⭐)
-- **Free Tier**: 3 shared CPU VMs ฟรี
-- **RAM**: 256MB (น้อยไปหน่อย แต่พอใช้ได้)
-- **Pros**: Global edge network, ไม่มี cold start
-- **Cons**: ต้อง setup CLI, เรียนรู้ยากกว่า
-- **เหมาะสำหรับ**: Advanced users
+### 3. **Fly.io** (Powerful but more complex ⭐⭐⭐⭐)
+- **Free Tier**: 3 shared CPU VMs
+- **RAM**: 256MB (tight but workable)
+- **Pros**: Global edge network, zero cold start
+- **Cons**: Requires CLI setup and has a steeper learning curve
+- **Best for**: Advanced users
 
-### 4. **Heroku** (ไม่แนะนำแล้ว ⭐⭐)
-- **Free Tier**: ยกเลิกไปแล้ว (ต้องจ่าย $7/เดือน)
-- **Pros**: ใช้ง่ายมาก
-- **Cons**: ไม่ฟรี
+### 4. **Heroku** (No longer recommended ⭐⭐)
+- **Free Tier**: Discontinued (starts at $7/month)
+- **Pros**: Extremely easy to use
+- **Cons**: Not free anymore
 
 ---
 
-## 🎯 Quick Start: Deploy บน Render.com
+## 🎯 Quick Start: Deploy on Render.com
 
-### ขั้นตอนที่ 1: เตรียมโปรเจค
+### Step 1: Prep the project
 
 ```bash
 cd python-vector-api
 
-# ตรวจสอบว่าไฟล์ครบ
+# Double-check required files are present
 ls -la
-# ต้องมี: Dockerfile, requirements.txt, app/, .env.example
+# Required: Dockerfile, requirements.txt, app/, .env.example
 ```
 
-### ขั้นตอนที่ 2: Push โค้ดขึ้น GitHub
+### Step 2: Push code to GitHub
 
 ```bash
-# ถ้ายังไม่มี git repo
+# If the repo is not initialized yet
 git init
 git add .
 git commit -m "feat: add Python Vector API"
@@ -54,28 +54,28 @@ git remote add origin https://github.com/YOUR_USERNAME/python-vector-api.git
 git push -u origin main
 ```
 
-### ขั้นตอนที่ 3: Deploy บน Render
+### Step 3: Deploy on Render
 
-1. **สมัคร Render.com**:
-   - ไปที่ https://render.com
-   - Sign up ด้วย GitHub
+1. **Create a Render account**:
+   - Visit https://render.com
+   - Sign up with GitHub
 
-2. **สร้าง Web Service**:
-   - คลิก "New +" → "Web Service"
-   - เชื่อมต่อ GitHub repository
-   - เลือก repo: `python-vector-api`
+2. **Create a Web Service**:
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Select repo: `python-vector-api`
 
-3. **ตั้งค่า**:
+3. **Configure the service**:
    ```yaml
    Name: fitrecipes-vector-api
    Environment: Docker
-   Region: Singapore (ใกล้สุด)
+   Region: Singapore (closest)
    Branch: main
    Dockerfile Path: ./Dockerfile
    Instance Type: Free
    ```
 
-4. **เพิ่ม Environment Variables**:
+4. **Add environment variables**:
    ```bash
    DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
    PYTHON_API_KEY=vsk_aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5zA7bC9dE1fG3hI5jK7lM9
@@ -86,45 +86,44 @@ git push -u origin main
    ```
 
 5. **Deploy**:
-   - คลิก "Create Web Service"
-   - รอ 5-10 นาที (build Docker image)
+   - Click "Create Web Service"
+   - Wait 5-10 minutes while the Docker image builds
 
-6. **ทดสอบ**:
+6. **Test**:
    ```bash
-   # URL จะได้มาประมาณ: https://fitrecipes-vector-api.onrender.com
-   
+   # Expect a URL similar to: https://fitrecipes-vector-api.onrender.com
    curl https://fitrecipes-vector-api.onrender.com/health
    ```
 
 ---
 
-## 🚀 Alternative: Deploy บน Railway.app
+## 🚀 Alternative: Deploy on Railway.app
 
-### ขั้นตอนที่ 1: Install Railway CLI
+### Step 1: Install the Railway CLI
 
 ```bash
 # macOS
 brew install railway
 
-# หรือใช้ npm
+# Or via npm
 npm install -g @railway/cli
 ```
 
-### ขั้นตอนที่ 2: Login
+### Step 2: Log in
 
 ```bash
 railway login
 ```
 
-### ขั้นตอนที่ 3: Deploy
+### Step 3: Deploy
 
 ```bash
 cd python-vector-api
 
-# สร้างโปรเจคใหม่
+# Create a new project
 railway init
 
-# เพิ่ม environment variables
+# Add environment variables
 railway variables set DATABASE_URL="postgresql://..."
 railway variables set PYTHON_API_KEY="vsk_..."
 
@@ -132,53 +131,53 @@ railway variables set PYTHON_API_KEY="vsk_..."
 railway up
 ```
 
-### ขั้นตอนที่ 4: เปิด Public URL
+### Step 4: Create a public URL
 
 ```bash
-# สร้าง public domain
+# Create a public domain
 railway domain
 ```
 
 ---
 
-## 🎯 Alternative: Deploy บน Fly.io
+## 🎯 Alternative: Deploy on Fly.io
 
-### ขั้นตอนที่ 1: Install Fly CLI
+### Step 1: Install the Fly CLI
 
 ```bash
 # macOS
 brew install flyctl
 
-# หรือใช้ script
+# Or use the script
 curl -L https://fly.io/install.sh | sh
 ```
 
-### ขั้นตอนที่ 2: Login และสร้างแอป
+### Step 2: Log in and launch
 
 ```bash
 cd python-vector-api
 
-# Login
+# Log in
 flyctl auth login
 
-# สร้างแอป
+# Launch the app
 flyctl launch
-# เลือก: 
+# Choose:
 # - App name: fitrecipes-vector-api
 # - Region: Singapore
 # - RAM: 512MB
 ```
 
-### ขั้นตอนที่ 3: ตั้งค่า Secrets
+### Step 3: Configure secrets
 
 ```bash
-# เพิ่ม environment variables
+# Add environment variables
 flyctl secrets set DATABASE_URL="postgresql://..."
 flyctl secrets set PYTHON_API_KEY="vsk_..."
 flyctl secrets set SUPABASE_URL="https://..."
 ```
 
-### ขั้นตอนที่ 4: Deploy
+### Step 4: Deploy
 
 ```bash
 flyctl deploy
@@ -186,7 +185,7 @@ flyctl deploy
 
 ---
 
-## 📊 เปรียบเทียบแพลตฟอร์ม
+## 📊 Platform Comparison
 
 | Platform | Free Tier | RAM | Cold Start | Ease of Use | Recommendation |
 |----------|-----------|-----|------------|-------------|----------------|
@@ -194,13 +193,13 @@ flyctl deploy
 | **Railway.app** | $5/mo | 512MB | ❌ None | ⭐⭐⭐⭐ | **Best performance** |
 | **Fly.io** | 3 VMs | 256MB | ❌ None | ⭐⭐⭐ | **Advanced users** |
 | **PythonAnywhere** | Limited | 100MB | ❌ None | ⭐⭐⭐ | Too limited for ML |
-| **Google Cloud Run** | 2M req/mo | 512MB | 1-5s | ⭐⭐⭐ | Need credit card |
+| **Google Cloud Run** | 2M req/mo | 512MB | 1-5s | ⭐⭐⭐ | Requires credit card |
 
 ---
 
-## ⚙️ ไฟล์ที่ต้องมีก่อน Deploy
+## ⚙️ Files to Prepare Before Deploying
 
-### 1. Dockerfile (✅ สร้างแล้ว)
+### 1. Dockerfile (already created)
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -229,7 +228,7 @@ tests/
 scripts/
 ```
 
-### 3. render.yaml (สำหรับ Render)
+### 3. render.yaml (for Render)
 ```yaml
 services:
   - type: web
@@ -249,7 +248,7 @@ services:
 
 ---
 
-## 🔧 การเชื่อมต่อจาก Backend
+## 🔧 Connecting From the Backend
 
 ### Update .env (Backend Hono.js)
 
@@ -260,11 +259,11 @@ PYTHON_API_URL=http://localhost:8000
 # Production (Render)
 PYTHON_API_URL=https://fitrecipes-vector-api.onrender.com
 
-# API Key (เหมือนกัน)
+# Same API key for both
 PYTHON_API_KEY=vsk_aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5zA7bC9dE1fG3hI5jK7lM9
 ```
 
-### ทดสอบการเชื่อมต่อ
+### Test the connection
 
 ```typescript
 // src/controllers/healthController.ts
@@ -285,31 +284,31 @@ export const checkServices = async (c: Context) => {
 
 ## 🚨 Troubleshooting
 
-### Issue 1: Build ล้มเหลว (Out of Memory)
+### Issue 1: Build failed (Out of Memory)
 
-**Solution**: ลด workers หรือใช้ pre-built wheels
+**Solution**: Reduce workers or install pre-built wheels
 ```dockerfile
-# ใน Dockerfile เพิ่ม
+# In the Dockerfile add
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 ```
 
-### Issue 2: Cold Start นานมาก
+### Issue 2: Cold starts are too long
 
-**Solution 1 - Keep Alive Service**:
+**Solution 1 - Keep-alive service**:
 ```bash
-# ใช้ cron-job.org เรียก API ทุก 10 นาที
+# Use cron-job.org (or similar) to ping the API every 10 minutes
 curl https://your-api.onrender.com/health
 ```
 
-**Solution 2 - Upgrade to Paid**:
-- Render: $7/เดือน (no cold start)
+**Solution 2 - Upgrade to a paid plan**:
+- Render: $7/month (no cold start)
 - Railway: Always-on instance
 
-### Issue 3: Database Connection Failed
+### Issue 3: Database connection failed
 
-**Solution**: ตรวจสอบ SSL mode
+**Solution**: Ensure SSL mode is set
 ```bash
-# ใน .env ใส่ sslmode=require
+# Add sslmode=require to `.env`
 DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
 ```
 
@@ -319,8 +318,7 @@ DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
 
 ### Render.com
 ```bash
-# ดู logs แบบ real-time
-# ไปที่ Render Dashboard → Service → Logs
+# Real-time logs live inside Render Dashboard → Service → Logs
 ```
 
 ### Railway.app
@@ -337,14 +335,14 @@ flyctl logs
 
 ## 💰 Cost Estimation
 
-### Scenario: 10,000 API calls/วัน
+### Scenario: 10,000 API calls/day
 
 | Platform | Monthly Cost | Notes |
 |----------|--------------|-------|
-| **Render (Free)** | $0 | Cold start หลัง 15 นาที |
+| **Render (Free)** | $0 | Cold starts after 15 minutes |
 | **Render (Paid)** | $7 | No cold start, 512MB RAM |
-| **Railway** | $5-10 | Based on usage |
-| **Fly.io** | $0-5 | 3 VMs ฟรี |
+| **Railway** | $5-10 | Usage-based |
+| **Fly.io** | $0-5 | 3 free VMs |
 
 ---
 
@@ -357,27 +355,27 @@ localhost:8000  # Run locally
 
 ### For Staging:
 ```bash
-Render.com (Free Tier)  # Cold start OK for staging
+Render.com (Free Tier)  # Cold start acceptable for staging
 ```
 
 ### For Production:
 ```bash
 Railway.app ($5-10/mo)  # No cold start, better performance
-# หรือ
-Render.com ($7/mo)  # Stable, predictable
+# or
+Render.com ($7/mo)      # Stable, predictable
 ```
 
 ---
 
 ## 🎯 Next Steps
 
-1. ✅ เลือกแพลตฟอร์ม: **Render.com** (แนะนำ)
-2. ✅ Push code ขึ้น GitHub
-3. ✅ Deploy บน Render (follow steps ด้านบน)
-4. ✅ ทดสอบด้วย curl
-5. ✅ Update `PYTHON_API_URL` ใน backend .env
-6. ✅ Test integration
+1. ✅ Choose a platform: **Render.com** (recommended)
+2. ✅ Push the code to GitHub
+3. ✅ Deploy on Render (follow the steps above)
+4. ✅ Test with curl
+5. ✅ Update `PYTHON_API_URL` in the backend `.env`
+6. ✅ Test the integration end-to-end
 
-**Time to deploy**: 15-20 นาที (first time)
+**Time to deploy**: 15-20 minutes (first run)
 
-Need help? พิมพ์ว่า "deploy render" หรือ "deploy railway" เพื่อดู step-by-step guide! 🚀
+Need more help? Type "deploy render" or "deploy railway" for a detailed walkthrough! 🚀
