@@ -1,5 +1,25 @@
 # Python Vector API - Deployment Guide 🚀
 
+## ✅ Before You Begin
+- Create accounts for your deployment platform (Render, Railway, Fly) and for Supabase/Postgres.
+- Provision a Postgres instance with pgvector (see section below) and confirm the connection string works from your laptop.
+- Install Docker Desktop, Git, and the relevant platform CLI (`render`, `railway`, or `flyctl`) if you plan to deploy via CLI.
+- Run the API locally (`uvicorn app.main:app --reload`) and verify `http://localhost:8000/health` returns `{"status":"ok"}` before attempting any remote deploy.
+- Store secrets in a password manager so you can rotate them quickly if leaked.
+
+## 🔐 Environment Variables Reference
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ | Postgres connection string with `sslmode=require`; must point to the pgvector-enabled database. |
+| `PYTHON_API_KEY` | ✅ | Shared secret for authenticating the backend to the Python API. Rotate if exposed. |
+| `SUPABASE_URL` | ✅ | Supabase REST URL used by the API when fetching metadata. |
+| `SUPABASE_ANON_KEY` | ✅ | Supabase anon/service key; prefer a service role key for production deployments. |
+| `ENVIRONMENT` | ✅ | `production`, `staging`, or `development`; drives logging verbosity and feature flags. |
+| `LOG_LEVEL` | ⚙️ | Defaults to `INFO`; set to `DEBUG` temporarily when troubleshooting (but watch log noise). |
+| `EXTRA_ALLOWED_ORIGINS` | ⚙️ | Comma-separated origins for CORS overrides if the frontend lives on multiple domains. |
+
+Keep the `.env` file out of version control (`.gitignore` already handles this). When using managed platforms, prefer their built-in secrets managers instead of storing credentials in code.
+
 ## 🌟 Recommended Platforms (FREE Tier)
 
 ### 1. **Render.com** (Top pick ⭐⭐⭐⭐⭐)
@@ -87,13 +107,21 @@ git push -u origin main
 
 5. **Deploy**:
    - Click "Create Web Service"
-   - Wait 5-10 minutes while the Docker image builds
+  - Wait 5-10 minutes while the Docker image builds
+  - Watch the **Logs** tab; build failures often mean missing env vars or insufficient memory
 
 6. **Test**:
    ```bash
    # Expect a URL similar to: https://fitrecipes-vector-api.onrender.com
    curl https://fitrecipes-vector-api.onrender.com/health
    ```
+
+7. **Observe & harden**:
+  - Turn on **Auto-Deploy** only after the first successful deploy so that unreviewed commits do not break production unexpectedly.
+  - Enable Render **Health Checks** (`/health`) so unhealthy instances are restarted automatically.
+  - If you hit cold starts frequently, configure an uptime monitor (BetterStack, Cronitor, or cron-job.org) to ping the API every 10 minutes.
+
+**Rollback plan**: Duplicate the service, pin it to the last known-good commit, and flip traffic by updating DNS/custom domains. Render keeps the previous image for a short window, so you can also hit "Redeploy last build" when needed.
 
 ---
 
@@ -137,6 +165,16 @@ railway up
 # Create a public domain
 railway domain
 ```
+
+**Reliability tips**
+- Run `railway status` after each deploy; it surfaces unhealthy builds quickly.
+- Use `railway logs -f` during the first traffic spike to ensure workers do not crash under load.
+- Railway snapshots your Postgres add-on. Schedule exports to Supabase Storage/S3 if you need longer retention.
+
+**Rollback plan**
+1. `railway releases` to list past deployments.
+2. `railway rollback <release-id>` to revert to a previous image.
+3. Re-run smoke tests (`/health`, `/v1/search?q=chicken`) before reopening traffic.
 
 ---
 
@@ -183,6 +221,16 @@ flyctl secrets set SUPABASE_URL="https://..."
 flyctl deploy
 ```
 
+**Reliability tips**
+- Add a Fly **Machine Check** pointing to `/health` so unhealthy VMs recycle.
+- Pin the app to a region close to your database to minimize latency.
+- Use `flyctl scale memory 512` (or higher) if embeddings exceed available RAM—otherwise deployments may crash mid-request.
+
+**Rollback plan**
+- `flyctl releases list` to view previous versions; `flyctl releases info <version>` to inspect.
+- `flyctl releases revert <version>` to redeploy the previous image.
+- Keep `fly.toml` committed so a teammate can redeploy the same config quickly.
+
 ---
 
 ## 📊 Platform Comparison
@@ -194,6 +242,36 @@ flyctl deploy
 | **Fly.io** | 3 VMs | 256MB | ❌ None | ⭐⭐⭐ | **Advanced users** |
 | **PythonAnywhere** | Limited | 100MB | ❌ None | ⭐⭐⭐ | Too limited for ML |
 | **Google Cloud Run** | 2M req/mo | 512MB | 1-5s | ⭐⭐⭐ | Requires credit card |
+
+---
+
+## 🔍 Post-Deployment Verification
+Perform these checks immediately after any deploy, no matter the platform:
+
+1. **Health endpoint**: `curl -i https://<host>/health` should return `200` plus `{ "status": "ok" }`.
+2. **Embedding workflow**: Run `python scripts/generate_embeddings.py --limit 1` against the remote API or call `/v1/search?q=chicken` to confirm pgvector writes succeed.
+3. **Logs**: Ensure there are no `psycopg2` or `vector` errors. Spikes usually signal a missing extension or invalid connection string.
+4. **Metrics**: On Render/Railway, confirm CPU and RAM stay below 70% during load; scale up if they breach that threshold for more than 5 minutes.
+5. **Alerting**: Configure a simple uptime check that notifies Slack/Email on repeated failures (BetterStack, UptimeRobot, or PagerDuty).
+
+## 🧠 Enable pgvector on Supabase
+
+Before deploying the API, make sure your Supabase Postgres instance has the `pgvector` extension enabled. This extension adds the `vector` column type that stores 768-dimension embeddings produced by the Sentence Transformers model—without it every vector insert/update will fail.
+
+1. **Open** `Supabase Dashboard → SQL Editor → New query`
+2. **Run** the following SQL script once:
+
+```sql
+-- Supabase Dashboard → SQL Editor → New query
+
+-- Enable pgvector extension (already available in Supabase)
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Verify installation
+SELECT * FROM pg_extension WHERE extname = 'vector';
+```
+
+If the verification query returns a row, you're good to go. Re-run these commands only when setting up a brand-new Supabase project.
 
 ---
 

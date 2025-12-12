@@ -1,0 +1,187 @@
+graph TB
+    subgraph "Client Layer"
+        USERS[👥 End Users<br/>Web Browsers<br/>Mobile Devices]
+    end
+    
+    subgraph "Frontend Hosting - Vercel"
+        VERCEL[🌐 Vercel Edge Network<br/>Global CDN<br/>SSL/TLS]
+        
+        subgraph "React Application"
+            FRONTEND[⚛️ React 19 + TypeScript<br/>Vite 6 Build<br/>Tailwind CSS v3]
+            
+            subgraph "State Management"
+                AUTH_CTX[🔐 Auth Context<br/>JWT + User State]
+                REACT_QUERY[📦 React Query<br/>Server Cache]
+            end
+            
+            subgraph "Core Pages"
+                PUBLIC[🏠 Auth + OAuth<br/>Terms & Verification<br/>Browse Recipes]
+                PROTECTED[📖 Recipe Detail<br/>Submit Recipe<br/>My Recipes]
+                ADMIN[👑 User Management<br/>Recipe Approval<br/>Content Moderation]
+            end
+            
+            subgraph "Services Layer"
+                API_CLIENT[🔌 API Client<br/>Axios + JWT]
+                AUTH_SVC[🛡️ Auth Service<br/>Token Management]
+                PUSH_SVC[🔔 Push Service<br/>FCM Web SDK]
+            end
+        end
+    end
+    
+    subgraph "Backend Hosting - Render"
+        RENDER_LB[⚖️ Load Balancer<br/>SSL/TLS Termination<br/>Managed Platform]
+        
+        subgraph "Main API Server"
+            APP[🚀 Hono.js Server<br/>Bun Runtime<br/>Docker Container<br/>Port 3000]
+            HEALTH[💚 Health Check<br/>/health endpoint<br/>30s intervals]
+        end
+    end
+    
+    subgraph "AI/ML Service - Railway"
+        subgraph "Vector Search API"
+            VECTOR_API[🐍 Python FastAPI<br/>Uvicorn Server<br/>Port 8000]
+            VECTOR_HEALTH[💚 Health Check<br/>/health endpoint<br/>Model Status]
+        end
+        
+        subgraph "ML Models & NLP"
+            EMBEDDINGS[🤖 Sentence Transformers<br/>paraphrase-multilingual<br/>768-dim vectors]
+            NLP_ENGINE[🧠 NLP Engine<br/>spaCy + Custom Rules<br/>Query Understanding]
+        end
+        
+        subgraph "Search Services"
+            VECTOR_SEARCH[🔍 Vector Search<br/>Semantic Similarity<br/>pgvector]
+            SMART_SEARCH[🧠 Smart Search<br/>NLP + Synonyms<br/>Multi-query Ranking]
+            INGREDIENT_SEARCH[🥗 Ingredient Search<br/>Multi-field Matching<br/>Score-based Ranking]
+            SUGGESTIONS[⚡ Autocomplete<br/>Search/Ingredient<br/>589+ ingredients DB]
+        end
+    end
+    
+    subgraph "Database Layer - Supabase"
+        POSTGRES[(🗄️ PostgreSQL 15<br/>Prisma ORM<br/>pgvector Extension<br/>Connection Pooling<br/>Daily Backups)]
+        STORAGE[☁️ Supabase Storage<br/>Recipe Images<br/>CDN Enabled]
+    end
+    
+    subgraph "External Services"
+        GOOGLE[🔐 Google OAuth 2.0<br/>Social Login]
+        RESEND[📧 Resend API<br/>Email Verification<br/>Password Reset]
+        FCM[🔔 Firebase Cloud Messaging<br/>Push Notifications]
+    end
+    
+    subgraph "CI/CD Pipeline - GitHub Actions"
+        GIT[📚 Git Repository<br/>GitHub<br/>main, develop branch]
+        
+        subgraph "Frontend Pipeline"
+            FE_LINT[✨ ESLint + Prettier<br/>Format Check]
+            FE_TYPE[📘 TypeScript Check<br/>Type Validation]
+            FE_TEST[🧪 Vitest Tests<br/>Coverage Report]
+            FE_BUILD[🏗️ Vite Build<br/>Node 18.x & 20.x]
+            FE_DEPLOY[🚢 Vercel Deploy<br/>Staging: develop<br/>Production: main]
+        end
+        
+        subgraph "Backend Pipeline"
+            BE_TEST[🧪 Unit Tests<br/>ESLint + TypeScript<br/>59 tests passing]
+            BE_BUILD[🐳 Docker Build<br/>Multi-stage<br/>Bun + Prisma]
+            SECURITY[🔒 Trivy Scanner<br/>Vulnerability Check]
+            BE_DEPLOY[🚢 Render Deploy<br/>DB Migrations<br/>Health Verification]
+        end
+    end
+    
+    subgraph "Monitoring & Observability"
+        LOGS[📊 Application Logs<br/>Hono Logger<br/>Error Tracking]
+        METRICS[📈 Performance Metrics<br/>Request/Response Time<br/>API Analytics]
+    end
+
+    %% User Flow
+    USERS -->|HTTPS| VERCEL
+    VERCEL --> FRONTEND
+    
+    %% Frontend Internal Flow
+    FRONTEND --> PUBLIC
+    FRONTEND --> PROTECTED
+    FRONTEND --> ADMIN
+    
+    PUBLIC --> AUTH_CTX
+    PROTECTED --> AUTH_CTX
+    PROTECTED --> REACT_QUERY
+    ADMIN --> AUTH_CTX
+    
+    AUTH_CTX --> AUTH_SVC
+    REACT_QUERY --> API_CLIENT
+    AUTH_SVC --> API_CLIENT
+    
+    %% Frontend to Backend
+    API_CLIENT -->|REST API<br/>JWT Auth| RENDER_LB
+    PUSH_SVC -->|Web Push| FCM
+    
+    %% Backend Communication
+    RENDER_LB -->|Route| APP
+    APP -->|Search API<br/>API Key Auth| VECTOR_API
+    
+    %% Vector API Internal
+    VECTOR_API --> VECTOR_SEARCH
+    VECTOR_API --> SMART_SEARCH
+    VECTOR_API --> INGREDIENT_SEARCH
+    VECTOR_API --> SUGGESTIONS
+    
+    %% ML Models
+    VECTOR_SEARCH --> EMBEDDINGS
+    SMART_SEARCH --> EMBEDDINGS
+    SMART_SEARCH --> NLP_ENGINE
+    
+    %% Database Connections
+    APP --> POSTGRES
+    APP --> STORAGE
+    VECTOR_SEARCH --> POSTGRES
+    SMART_SEARCH --> POSTGRES
+    INGREDIENT_SEARCH --> POSTGRES
+    
+    %% External Services
+    APP --> GOOGLE
+    APP --> RESEND
+    APP --> FCM
+    
+    %% Health Monitoring
+    APP --> HEALTH
+    RENDER_LB --> HEALTH
+    VECTOR_API --> VECTOR_HEALTH
+    
+    %% CI/CD Flow - Frontend
+    GIT -->|Push Frontend| FE_LINT
+    FE_LINT -->|✅ Pass| FE_TYPE
+    FE_TYPE -->|✅ Pass| FE_TEST
+    FE_TEST -->|✅ Pass| FE_BUILD
+    FE_BUILD -->|✅ Success| FE_DEPLOY
+    FE_DEPLOY --> VERCEL
+    
+    %% CI/CD Flow - Backend
+    GIT -->|Push Backend| BE_TEST
+    BE_TEST -->|✅ Pass| BE_BUILD
+    BE_BUILD -->|✅ Success| SECURITY
+    SECURITY -->|✅ Pass| BE_DEPLOY
+    BE_DEPLOY --> APP
+    
+    %% Monitoring
+    APP --> LOGS
+    APP --> METRICS
+    VERCEL --> METRICS
+    VECTOR_API --> LOGS
+    VECTOR_API --> METRICS
+
+    %% Styling
+    classDef client fill:#e3f2fd,stroke:#1976d2,stroke-width:4px,color:#000
+    classDef frontend fill:#bbdefb,stroke:#0d47a1,stroke-width:3px,color:#000
+    classDef backend fill:#ffe0b2,stroke:#e65100,stroke-width:3px,color:#000
+    classDef aiml fill:#e1bee7,stroke:#6a1b9a,stroke-width:4px,color:#000
+    classDef database fill:#c8e6c9,stroke:#2e7d32,stroke-width:4px,color:#000
+    classDef external fill:#fff9c4,stroke:#f57f17,stroke-width:3px,color:#000
+    classDef cicd fill:#ffccbc,stroke:#bf360c,stroke-width:2px,color:#000
+    classDef monitoring fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    
+    class USERS client
+    class VERCEL,FRONTEND,AUTH_CTX,REACT_QUERY,PUBLIC,PROTECTED,ADMIN,API_CLIENT,AUTH_SVC,PUSH_SVC frontend
+    class RENDER_LB,APP,HEALTH backend
+    class VECTOR_API,EMBEDDINGS,NLP_ENGINE,VECTOR_SEARCH,SMART_SEARCH,INGREDIENT_SEARCH,SUGGESTIONS,VECTOR_HEALTH aiml
+    class POSTGRES,STORAGE database
+    class GOOGLE,RESEND,FCM external
+    class GIT,FE_LINT,FE_TYPE,FE_TEST,FE_BUILD,FE_DEPLOY,BE_TEST,BE_BUILD,SECURITY,BE_DEPLOY cicd
+    class LOGS,METRICS monitoring
